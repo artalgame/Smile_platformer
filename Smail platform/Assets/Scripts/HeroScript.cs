@@ -22,6 +22,8 @@ public class HeroScript : MonoBehaviour {
 	public float FinishJumpTime;
 	public bool OnGround;
 	public float JumpTimeOut;
+	
+	public bool IsLookAtRight = true;
 	// Use this for initialization
 	void Start () {
 	}
@@ -33,16 +35,17 @@ public class HeroScript : MonoBehaviour {
 	 IsJumpStart = false;
 	 if(Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow) && !IsForwardMovingInProcess)
 		{
+			IsLookAtRight = true;
 			IsForwardMoving = true;			
 			CurrentHorizontalSpeed = Mathf.Abs(HorizontalStepSpeed);
 			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);
 		}
 	 if(Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow) && !IsForwardMovingInProcess)
 		{
-			CurrentHorizontalSpeed = -Mathf.Abs(HorizontalStepSpeed);
-			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);
 			IsForwardMoving = true;
-			
+			IsLookAtRight = false;
+			CurrentHorizontalSpeed = -Mathf.Abs(HorizontalStepSpeed);
+			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);	
 		}
 			
 	 if(Input.GetKey(KeyCode.W) || Input.GetKey (KeyCode.UpArrow) && OnGround && !IsJumpInProgress )
@@ -116,7 +119,10 @@ public class HeroScript : MonoBehaviour {
 	}*/
 	void OnTriggerExit(Collider other)
 	{
-		OnGround = !(other.gameObject.tag == "Floor");
+		if((other.gameObject.tag == "Floor"))
+		{
+			OnGround = false;
+		}
 	}
 	void OnTriggerEnter(Collider other)
 	{
