@@ -22,10 +22,10 @@ public class Game : MonoBehaviour {
 			IsVictory = true;		
 		}
 		else
-		if(Hero.IsDied)
-		{
-			IsDefeat = true;
-		}
+			if(Hero.IsDied)
+			{
+				IsDefeat = true;
+			}
 	}
 	void OnGUI()
 	{
@@ -48,7 +48,6 @@ public class Game : MonoBehaviour {
 		GUI.Box(new Rect(300,200,200,120), menuTitle);
 		if(GUI.Button(new Rect(325,225,150,25),"New game"))
 		{
-		    Time.timeScale = 1 - Time.timeScale;
 		    LoadGame();
 		}
 		if(GUI.Button(new Rect(325,260,150,25),"Quit"))
@@ -56,8 +55,8 @@ public class Game : MonoBehaviour {
 			Application.Quit();
 		}
 	}
-		void LoadGame()
-		{
-			 Application.LoadLevel(Application.loadedLevel);
-		}
+	void LoadGame()
+	{
+		 Application.LoadLevel(Application.loadedLevel);
+	}
 }

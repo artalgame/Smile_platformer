@@ -4,14 +4,13 @@ using System.Collections;
 public class HeroScript : MonoBehaviour {
 	//Forward,backward
 	public float HorizontalStepSpeed;
-	public float VerticalStepSpeed;
 	public bool IsForwardMoving;
 	public bool IsForwardMovingInProcess;
 	public float ForwardStepTimeDuration;
 	public float StartTimeOfForwardStep;
 	public float CurrentHorizontalSpeed;
 	public float CurrentVerticalSpeed;
-	public float CurrentVerticalStepSpeed;
+	public float BackVerticalSpeed;//speed, return on ground
 	
 	//Jump
 	public float VerticalJumpSpeed;
@@ -19,20 +18,21 @@ public class HeroScript : MonoBehaviour {
 	public bool IsJumpStart;
 	public float JumpDurationTime;
 	public float StartJumpTime;
-	public float FinishJumpTime;
-	public bool OnGround;
-	public float JumpTimeOut = 2;
+	
+	public float JumpTimeOut;
 	public float LastJumpTime = float.MinValue;
 	
 	public Material heroMaterial;
 	public float LastChangeFrame = float.MinValue;
 	public float TimeOutToChangeFrame;
-	public float BackVerticalSpeed;
 	
-	public bool IsLookAtRight = true;
-	public bool IsWallInRight = false;
-	public bool IsWallInLeft = false;
+	
+	public bool IsGoToRight = true;
+	public bool IsWallAtRight = false;
+	public bool IsWallAtLeft = false;
 	public bool IsDied;
+	
+	public bool OnGround;//Hero is on ground
 	
 	public int CountOfApples;
 	// Use this for initialization
@@ -45,25 +45,26 @@ public class HeroScript : MonoBehaviour {
 	{
 	 IsForwardMoving = false;
 	 IsJumpStart = false;
-	 if((Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) && !IsForwardMovingInProcess &&!IsWallInRight)
+	 if((Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) && !IsForwardMovingInProcess && !IsWallAtRight)
 		{
-			IsLookAtRight = true;
+			IsGoToRight = true;
 			IsForwardMoving = true;			
 			CurrentHorizontalSpeed = Mathf.Abs(HorizontalStepSpeed);
-			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);
+			var offset = heroMaterial.mainTextureOffset;
+			heroMaterial.mainTextureOffset =new Vector2(offset.x,0.5f);
 		}
-	 if((Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow)) && !IsForwardMovingInProcess && !IsWallInLeft)
+	 if((Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow)) && !IsForwardMovingInProcess && !IsWallAtLeft)
 		{
 			IsForwardMoving = true;
-			IsLookAtRight = false;
-			CurrentHorizontalSpeed = -Mathf.Abs(HorizontalStepSpeed);
-			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);	
+			IsGoToRight = false;
+			CurrentHorizontalSpeed = -Mathf.Abs(HorizontalStepSpeed);	
+			var offset = heroMaterial.mainTextureOffset;
+			heroMaterial.mainTextureOffset =new Vector2(offset.x,0);
 		}
 			
 	 if((Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)) && OnGround && !IsJumpInProgress && Time.time-LastJumpTime>JumpTimeOut)
 		{
 			IsJumpStart = true;
-			CurrentVerticalStepSpeed = 0;
 			CurrentVerticalSpeed = VerticalJumpSpeed;
 		}
 		CheckForwardMoving();
@@ -88,11 +89,11 @@ public class HeroScript : MonoBehaviour {
 			}
 			if(Time.time - StartTimeOfForwardStep < ForwardStepTimeDuration)
 				{
-					transform.localPosition+=new Vector3(CurrentHorizontalSpeed,CurrentVerticalStepSpeed,0)*Time.deltaTime;
+					transform.localPosition+=new Vector3(CurrentHorizontalSpeed,0,0)*Time.fixedDeltaTime;
 				}
 			else
 			{
-				transform.localPosition+=new Vector3(CurrentHorizontalSpeed,-CurrentVerticalStepSpeed,0)*Time.deltaTime;
+				transform.localPosition+=new Vector3(CurrentHorizontalSpeed,0,0)*Time.fixedDeltaTime;
 			}
 			if(Time.time - StartTimeOfForwardStep>2*ForwardStepTimeDuration)
 			{
@@ -114,7 +115,7 @@ public class HeroScript : MonoBehaviour {
 			if(Time.time - StartJumpTime <= JumpDurationTime)
 			{
 				transform.localPosition+=new Vector3(0,CurrentVerticalSpeed,0)
-					*Time.deltaTime*((JumpDurationTime-(Time.time-StartJumpTime))/JumpDurationTime);
+					*Time.fixedDeltaTime*((JumpDurationTime-(Time.time-StartJumpTime))/JumpDurationTime);
 			}
 			else
 			{
@@ -129,8 +130,8 @@ public class HeroScript : MonoBehaviour {
 		{
 			if(!IsJumpInProgress)
 			{
-				BackVerticalSpeed+=(400f*Time.deltaTime);
-				transform.localPosition+=new Vector3(0,-BackVerticalSpeed,0)*Time.deltaTime;
+				BackVerticalSpeed+=(400f*Time.fixedDeltaTime);
+				transform.localPosition+=new Vector3(0,-BackVerticalSpeed,0)*Time.fixedDeltaTime;
 			}
 		}
 	}
@@ -152,19 +153,8 @@ public class HeroScript : MonoBehaviour {
 			{
 				OnGround = false;
 			}
-		}
-			else
-		{
-			var platformPosition = other.gameObject.transform.localPosition;
-			var heroPosition = transform.localPosition;
-				if(platformPosition.x>heroPosition.x)
-				{
-					IsWallInRight = false;
-				}
-					else
-				{
-					IsWallInLeft = false;
-				}
+			IsWallAtLeft = false;	
+			IsWallAtRight = false;
 		}
 	}
 	void OnTriggerEnter(Collider other)
@@ -180,14 +170,14 @@ public class HeroScript : MonoBehaviour {
 			else
 			{
 				platformPosition = other.gameObject.transform.localPosition.x;
-				heroPosition = transform.localPosition.x;
+				heroPosition = transform.localPosition.x+transform.localScale.x/2*((BoxCollider)collider).size.x;
 				if(platformPosition>heroPosition)
 				{
-					IsWallInRight = true;
+					IsWallAtRight = true;
 				}
 					else
 				{
-					IsWallInLeft = true;
+					IsWallAtLeft = true;
 				}
 			}
 			IsForwardMovingInProcess = false;
@@ -204,7 +194,7 @@ public class HeroScript : MonoBehaviour {
 			CountOfApples++;
 			Destroy(other.gameObject);
 		}
-		if(other.tag == "Enemy")
+		if(other.tag == "Enemy" || other.tag == "Abyss")
 		{
 			IsDied = true;
 		}

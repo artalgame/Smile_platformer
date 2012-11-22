@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections;
 
 public class Bullet : MonoBehaviour {
-	public static float STANDART_SPEED = 300f;
+	public static float STANDART_SPEED = 500f;
 	public float LifeTime = 5f;
 	public float StartTime;
 	public Vector3 Speed;
@@ -27,9 +27,10 @@ public class Bullet : MonoBehaviour {
 	{
 		Destroy(this.gameObject);
 	}
+	
 	void OnTriggerEnter(Collider other)
 	{
-		if(other.tag == "Floor")
+		if(other.tag == "Platform")
 		{
 			DestroyBullet();
 		}
