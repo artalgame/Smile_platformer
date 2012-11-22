@@ -30,8 +30,14 @@ public class HeroScript : MonoBehaviour {
 	public float BackVerticalSpeed;
 	
 	public bool IsLookAtRight = true;
+	public bool IsWallInRight = false;
+	public bool IsWallInLeft = false;
+	public bool IsDied;
+	
+	public int CountOfApples;
 	// Use this for initialization
 	void Start () {
+		CountOfApples = 0;
 	}
 	
 	// Update is called once per frame
@@ -39,14 +45,14 @@ public class HeroScript : MonoBehaviour {
 	{
 	 IsForwardMoving = false;
 	 IsJumpStart = false;
-	 if((Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) && !IsForwardMovingInProcess)
+	 if((Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) && !IsForwardMovingInProcess &&!IsWallInRight)
 		{
 			IsLookAtRight = true;
 			IsForwardMoving = true;			
 			CurrentHorizontalSpeed = Mathf.Abs(HorizontalStepSpeed);
 			CurrentVerticalStepSpeed = Mathf.Abs(VerticalStepSpeed);
 		}
-	 if((Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow)) && !IsForwardMovingInProcess)
+	 if((Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow)) && !IsForwardMovingInProcess && !IsWallInLeft)
 		{
 			IsForwardMoving = true;
 			IsLookAtRight = false;
@@ -129,20 +135,41 @@ public class HeroScript : MonoBehaviour {
 		}
 	}
 	
-	/*void OnTriggerStay(Collider other)
+	void OnTriggerStay(Collider other)
 	{
-		OnGround = other.gameObject.name == "floor";
-	}*/
+	}
 	void OnTriggerExit(Collider other)
 	{
-		if((other.gameObject.tag == "MainFloor") || ((other.gameObject.tag == "Floor")))
+		if((other.gameObject.tag == "Floor"))
 		{
 			OnGround = false;
+		}
+		if(other.gameObject.tag == "Platform")
+		{
+		float platformPosition = other.gameObject.transform.localPosition.y+other.gameObject.transform.localScale.y/2;
+			float heroPosition = transform.localPosition.y-transform.localScale.y/2;
+			if(platformPosition<=heroPosition)
+			{
+				OnGround = false;
+			}
+		}
+			else
+		{
+			var platformPosition = other.gameObject.transform.localPosition;
+			var heroPosition = transform.localPosition;
+				if(platformPosition.x>heroPosition.x)
+				{
+					IsWallInRight = false;
+				}
+					else
+				{
+					IsWallInLeft = false;
+				}
 		}
 	}
 	void OnTriggerEnter(Collider other)
 	{
-		if(other.gameObject.tag == "Floor")
+		if(other.gameObject.tag == "Platform")
 		{
 			float platformPosition = other.gameObject.transform.localPosition.y+other.gameObject.transform.localScale.y/2;
 			float heroPosition = transform.localPosition.y-transform.localScale.y/2;
@@ -150,14 +177,36 @@ public class HeroScript : MonoBehaviour {
 			{
 				OnGround = true;
 			}
+			else
+			{
+				platformPosition = other.gameObject.transform.localPosition.x;
+				heroPosition = transform.localPosition.x;
+				if(platformPosition>heroPosition)
+				{
+					IsWallInRight = true;
+				}
+					else
+				{
+					IsWallInLeft = true;
+				}
+			}
 			IsForwardMovingInProcess = false;
 			IsJumpInProgress = false;
 		}
-		if(other.gameObject.tag == "MainFloor")
+		if(other.gameObject.tag == "Floor")
 		{
 			OnGround = true;
 			IsForwardMovingInProcess = false;
 			IsJumpInProgress = false;
+		}
+		if(other.tag == "Apple")
+		{
+			CountOfApples++;
+			Destroy(other.gameObject);
+		}
+		if(other.tag == "Enemy")
+		{
+			IsDied = true;
 		}
 	}
 }

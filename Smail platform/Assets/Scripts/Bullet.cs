@@ -7,6 +7,7 @@ public class Bullet : MonoBehaviour {
 	public float LifeTime = 5f;
 	public float StartTime;
 	public Vector3 Speed;
+	public float Damage = 1f;
 	// Use this for initialization
 	void Start () {
 		StartTime = Time.time;
@@ -16,17 +17,21 @@ public class Bullet : MonoBehaviour {
 	void FixedUpdate () {
 		if(StartTime+LifeTime<=Time.time)
 		{
-			Destroy(this.gameObject);
+			DestroyBullet();
 			return;
 		}
 		transform.localPosition+=Speed*Time.deltaTime;
 	}
 	
+	public void DestroyBullet()
+	{
+		Destroy(this.gameObject);
+	}
 	void OnTriggerEnter(Collider other)
 	{
 		if(other.tag == "Floor")
 		{
-			Destroy(this.gameObject);
+			DestroyBullet();
 		}
 	}
 }
